@@ -7,5 +7,7 @@ clone/download the repo, then follow love2d run instructions: [click here!](http
 ## controls:
 
 arrow keys - move
+
 z - shoot
+
 x - special
