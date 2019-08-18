@@ -1,5 +1,7 @@
 local startload = love.timer.getTime()
 
+tick = require "lib/tick"
+
 require "audio"
 require "utils"
 
@@ -18,6 +20,7 @@ local upd = 0
 function love.load()
   sprites = {}
   palettes = {}
+  sound_exists = {}
 
   love.graphics.setDefaultFilter("nearest","nearest")
 
@@ -195,6 +198,8 @@ function love.draw()
 end
 
 function love.update(dt)
+  tick.update(dt)
+
   upd = upd + 1
   if upd % 50 == 1 then
     if math.random(1,3) == 1 then
