@@ -11,9 +11,15 @@ projectiles = {}
 ox = love.graphics.getWidth()/3
 oy = love.graphics.getHeight()/2
 
+oinvincframes = 30
+olevel = 1
+
 points = 0
 didpointsanim = false
 pointsanimprog = 0
+
+cheatstat = 0
+debug = false
 
 local upd = 0
 
@@ -75,6 +81,9 @@ function love.load()
           audioname = d .. "/" .. audioname
         end]]
         sound_exists[audioname] = true
+        if dir:ends("sfx") then
+          registerSound(audioname, 1)
+        end
         --print("ℹ️ audio "..audioname.." added")
       end
     end
@@ -109,7 +118,7 @@ end
 function love.draw()
   local dt = love.timer.getDelta()
   love.graphics.setColor(1,1,1)
-  
+
   local time = love.timer.getTime()
   local function renderparralax(sprite, speed, xoffset, sine)
     local scale = love.graphics.getHeight()/sprite:getHeight()
@@ -142,18 +151,43 @@ function love.draw()
       love.graphics.circle('fill', p.x-p.size, p.y-p.size, p.size)
     elseif p.type == 'point' then
       love.graphics.push()
-      
+
       love.graphics.translate(p.x, p.y)
       love.graphics.rotate(love.timer.getTime()*(1+p.seed/2) + (p.seed * 4))
-      
+
       love.graphics.setColor(hslToRgb(p.seed, 0.6, 0.5))
       love.graphics.rectangle('fill', -p.size/2, -p.size/2, p.size, p.size)
-     
+
       love.graphics.pop()
+    elseif p.type == 'powerup' then
+      love.graphics.push()
+
+      love.graphics.translate(p.x, p.y)
+      love.graphics.rotate(math.cos(love.timer.getTime()*4)/2)
+
+      love.graphics.setColor(1,1,1)
+      love.graphics.draw(sprites['powerup'], -16, -16)
+
+      love.graphics.pop()
+    elseif p.type == 'death' then
+      local alpha = (90-p.size)/90
+
+      love.graphics.setColor(1, 1, 0, alpha)
+      love.graphics.circle('line', p.x, p.y, p.size)
+      love.graphics.setColor(1, 1, 0, 0.925*alpha)
+      love.graphics.circle('line', p.x, p.y, p.size-5)
+      love.graphics.setColor(1, 1, 0, 0.75*alpha)
+      love.graphics.circle('line', p.x, p.y, p.size-10)
+      love.graphics.setColor(1, 1, 0, 0.675*alpha)
+      love.graphics.circle('line', p.x, p.y, p.size-15)
+      love.graphics.setColor(1, 1, 0, 0.5*alpha)
+      love.graphics.circle('line', p.x, p.y, p.size-20)
+      love.graphics.setColor(1, 1, 0, alpha)
+      love.graphics.circle('fill', p.x, p.y, p.size-30)
     end
   end
 
-  love.graphics.setColor(1,1,1)
+  love.graphics.setColor(1,1,1,(oinvincframes%8 < 4) and 1 or 0)
   love.graphics.draw(sprites["o"], ox-16, oy-14+math.sin(love.timer.getTime())*2)
   love.graphics.rectangle('fill', ox, oy, 1, 1)
   love.graphics.setColor(0,0,0)
@@ -171,7 +205,7 @@ function love.draw()
     love.graphics.circle('fill', 0, -23, 2)
     love.graphics.setColor(0.1,0.1,0.1,alpha)
     love.graphics.circle('line', 0, -23, 2)
-    
+
     love.graphics.pop()
   end
 
@@ -200,8 +234,12 @@ end
 function love.update(dt)
   tick.update(dt)
 
+  if oinvincframes > 0 then
+    oinvincframes = oinvincframes - 1
+  end
+
   upd = upd + 1
-  if upd % 50 == 1 then
+  if upd % 52-olevel*2 == 1 then
     if math.random(1,3) == 1 then
       table.insert(scene, testent2:new{x = love.graphics.getWidth(), y = math.random(0,love.graphics.getHeight())})
     else
@@ -222,14 +260,29 @@ function love.update(dt)
     ox = ox - dt*230
   end
   if love.keyboard.isDown('z') then
-    table.insert(projectiles, {size = 3, x = ox, y = 4+oy+math.sin(love.timer.getTime()*8)*10, type = 'bullet', vx = 5, vy = 0})
-    table.insert(projectiles, {size = 3, x = ox, y = 4+oy+math.sin(-love.timer.getTime()*8)*10, type = 'bullet', vx = 5, vy = 0})
+    if olevel == 1 then
+      table.insert(projectiles, {size = 3, x = ox, y = 4+oy+math.sin(love.timer.getTime()*8)*10, type = 'bullet', vx = 7, vy = 0})
+    elseif olevel == 2 then
+      table.insert(projectiles, {size = 3, x = ox, y = 4+oy+math.sin(love.timer.getTime()*8)*10, type = 'bullet', vx = 7, vy = 0})
+      table.insert(projectiles, {size = 3, x = ox, y = 4+oy+math.sin(-love.timer.getTime()*8)*10, type = 'bullet', vx = 7, vy = 0})
+    elseif olevel == 3 then
+      table.insert(projectiles, {size = 3, x = ox, y = 4+oy+math.sin(love.timer.getTime()*8)*10, type = 'bullet', vx = 6, vy = 0})
+      table.insert(projectiles, {size = 3, x = ox, y = 4+oy+math.sin(-love.timer.getTime()*8)*10, type = 'bullet', vx = 6, vy = 0})
+      table.insert(projectiles, {size = 2, x = ox, y = oy+12, type = 'bullet', vx = 7, vy = 1})
+      table.insert(projectiles, {size = 2, x = ox, y = oy-3, type = 'bullet', vx = 7, vy = -1})
+    elseif olevel == 4 then
+      table.insert(projectiles, {size = 4, x = ox, y = 4+oy+math.sin(love.timer.getTime()*8)*10, type = 'bullet', vx = 6, vy = 0})
+      table.insert(projectiles, {size = 4, x = ox, y = 4+oy+math.sin(-love.timer.getTime()*8)*10, type = 'bullet', vx = 6, vy = 0})
+      table.insert(projectiles, {size = 3, x = ox, y = oy+12, type = 'bullet', vx = 7, vy = 0.7})
+      table.insert(projectiles, {size = 3, x = ox, y = oy-3, type = 'bullet', vx = 7, vy = -0.7})
+      table.insert(projectiles, {size = 3, x = ox, y = oy, type = 'bullet', vx = 5, vy = 0})
+    end
   end
 
   for _,o in ipairs(scene) do
     o:update(o)
 
-    if ox > o.x-o.wid/2 and ox < o.x+o.wid/2 and oy > o.y-o.hig/2 and oy < o.y+o.hig/2 then
+    if ox > o.x-o.wid/2 and ox < o.x+o.wid/2 and oy > o.y-o.hig/2 and oy < o.y+o.hig/2 and oinvincframes == 0 then
       odie()
     end
 
@@ -250,8 +303,11 @@ function love.update(dt)
           table.remove(projectiles, _)
           if not o.hp or o.hp < 0 then
             table.remove(scene, i)
-            for i=0, math.random(2,6) do
+            for _=0, math.random(2,6) do
               table.insert(projectiles, {size = math.random(4,7), x = o.x+math.random(-20,20), y = o.y+math.random(-20,20), type = 'point', seed = math.random(0, 10000)/10000})
+            end
+            if math.random(1,10) == 1 and olevel < 5 then
+              table.insert(projectiles, {x = o.x, y = o.y, type = 'powerup'})
             end
           else
             o.hp = o.hp - p.size/3
@@ -267,6 +323,21 @@ function love.update(dt)
 
       if p.x > ox-16 and p.y > oy-16 and p.x < ox+16 and p.y < oy+16 then
         points = points + 10
+        table.remove(projectiles, _)
+      end
+    elseif p.type == 'powerup' then
+      p.y = p.y + dt*30
+
+      if p.x > ox-16 and p.y > oy-16 and p.x < ox+16 and p.y < oy+16 then
+        if olevel < 5 then
+          olevel = olevel + 1
+        end
+        table.remove(projectiles, _)
+      end
+    elseif p.type == 'death' then
+      p.size = p.size + dt*60
+
+      if p.size > 90 then
         table.remove(projectiles, _)
       end
     end
@@ -291,11 +362,35 @@ function love.keypressed(key)
       end
       points = 0
       didpointsanim = false
+      oinvincframes = 180
     end
+  end
+
+  -- cheat activation
+  if key ~= 'lshift' then
+    if cheatstat == 5 then if key == 'return' then
+      cheatstat = -1
+      debug = true
+      playSound('coin', 0.5)
+      print('yay')
+    else cheatstat = 0 end end
+    if cheatstat == 4 then if key == 'h' and love.keyboard.isDown('lshift') then cheatstat = 5 else cheatstat = 0 end end
+    if cheatstat == 3 then if key == 'right' then cheatstat = 4 else cheatstat = 0 end end
+    if cheatstat == 2 then if key == 'right' then cheatstat = 3 else cheatstat = 0 end end
+    if cheatstat == 1 then if key == 'left' then cheatstat = 2 else cheatstat = 0 end end
+    if cheatstat == 0 and key == 'left' then cheatstat = 1 end
   end
 end
 
 function odie()
+  table.insert(projectiles, {size = 20, x = ox, y = oy, type = 'death'})
+
   ox = -9999
   oy = -9999
+
+  tick.delay(function()
+    ox = love.graphics.getWidth()/3
+    oy = love.graphics.getHeight()/2
+    oinvincframes = 60
+  end, 1.5)
 end

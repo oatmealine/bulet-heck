@@ -4,5 +4,6 @@
     ],
     "Lua.diagnostics.disable": [
         "lowercase-global"
-    ]
+    ],
+    "discord.enabled": true
 }

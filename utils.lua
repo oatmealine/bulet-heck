@@ -24,3 +24,7 @@ function hslToRgb(h, s, l, a)
 
   return {r, g, b} --a removed cus unused
 end
+
+function string.ends(str, ending)
+  return ending == "" or str:sub(-#ending) == ending
+end
