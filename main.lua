@@ -132,14 +132,14 @@ function love.draw()
     love.graphics.draw(sprite, sprite:getWidth()*scale + (time*speed) % (sprite:getWidth()*scale) + xoffset, yoffset, 0, scale, scale)
   end
 
-  renderparralax(sprites["bg/bg0"], 15, 0)
-  renderparralax(sprites["bg/bg1"], 30, 0)
+  renderparralax(sprites["bg/moo-sky3"], 15, 0)
+  renderparralax(sprites["bg/moo-sky2"], 20, 0)
+  renderparralax(sprites["bg/moo-sky1"], 25, 0)
+  renderparralax(sprites["bg/moo-field"], -40, 0)
 
-  renderparralax(sprites["bg/bgc0"], 40, 0, true)
-  renderparralax(sprites["bg/bgc1"], 60, 0, true)
-  renderparralax(sprites["bg/bgc2"], 50, 0, true)
-  renderparralax(sprites["bg/bgc3"], 70, 0, true)
-  renderparralax(sprites["bg/bgc4"], 65, 0, true)
+  renderparralax(sprites["bg/moo-cloud1"], -40, 0, true)
+  renderparralax(sprites["bg/moo-cloud2"], -60, 0, true)
+  renderparralax(sprites["bg/moo-cloud3"], -50, 0, true)
 
   for _,o in ipairs(scene) do
     o:draw(o)
