@@ -113,6 +113,7 @@ function love.load()
   print("boot complete!")
 
   print("load took ~"..(math.floor((love.timer.getTime()-startload)*1000)/1000).."ms")
+  playMusic('moo field', 0.9)
 end
 
 function love.draw()
@@ -277,6 +278,8 @@ function love.update(dt)
       table.insert(projectiles, {size = 3, x = ox, y = oy-3, type = 'bullet', vx = 7, vy = -0.7})
       table.insert(projectiles, {size = 3, x = ox, y = oy, type = 'bullet', vx = 5, vy = 0})
     end
+
+    playSound('oschut', 0.1);
   end
 
   for _,o in ipairs(scene) do
@@ -309,9 +312,11 @@ function love.update(dt)
             if math.random(1,10) == 1 and olevel < 5 then
               table.insert(projectiles, {x = o.x, y = o.y, type = 'powerup'})
             end
+            playSound('enemydie',0.7)
           else
             o.hp = o.hp - p.size/3
             if o.hurt then o:hurt(o) end
+            playSound('ohurt',0.4)
           end
         end
       end
@@ -332,6 +337,7 @@ function love.update(dt)
         if olevel < 5 then
           olevel = olevel + 1
         end
+        playSound('powerup',0.7)
         table.remove(projectiles, _)
       end
     elseif p.type == 'death' then
@@ -372,7 +378,6 @@ function love.keypressed(key)
       cheatstat = -1
       debug = true
       playSound('coin', 0.5)
-      print('yay')
     else cheatstat = 0 end end
     if cheatstat == 4 then if key == 'h' and love.keyboard.isDown('lshift') then cheatstat = 5 else cheatstat = 0 end end
     if cheatstat == 3 then if key == 'right' then cheatstat = 4 else cheatstat = 0 end end
@@ -383,6 +388,7 @@ function love.keypressed(key)
 end
 
 function odie()
+  playSound('odie',0.6)
   table.insert(projectiles, {size = 20, x = ox, y = oy, type = 'death'})
 
   ox = -9999
